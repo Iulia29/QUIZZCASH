@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .form-container {
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .expenses-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .expenses-list li {
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 4px;
+        }
+
+        .expense-description {
+            font-size: 16px;
+        }
+
+        .expense-amount {
+            font-size: 16px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .total {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Expense Tracker</h1>
+        
+        <div class="error" id="error-message"></div>
+
+        <div class="form-container">
+            <input type="text" id="description" placeholder="Expense Description" />
+            <input type="number" id="amount" placeholder="Amount" />
+            <button id="addExpenseBtn">Add Expense</button>
+        </div>
+        
+        <div class="expenses-list">
+            <h2>Expense List</h2>
+            <ul id="expensesList"></ul>
+        </div>
+        
+        <div class="total">
+            Total Expenses: <span id="totalAmount">0</span> RON
+        </div>
+    </div>
+
+    <script>
+        // Select HTML elements
+        const descriptionInput = document.getElementById('description');
+        const amountInput = document.getElementById('amount');
+        const addExpenseBtn = document.getElementById('addExpenseBtn');
+        const expensesList = document.getElementById('expensesList');
+        const totalAmount = document.getElementById('totalAmount');
+        const errorMessage = document.getElementById('error-message');
+
+        // Variables for managing expenses
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+        // Function to update the total
+        function updateTotal() {
+            const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            totalAmount.textContent = total.toFixed(2);
+        }
+
+        // Function to update the expenses list
+        function updateExpensesList() {
+            expensesList.innerHTML = '';
+            expenses.forEach((expense, index) => {
+                const expenseItem = document.createElement('li');
+                expenseItem.innerHTML = `
+                    <span class="expense-description">${expense.description}</span>:
+                    <span class="expense-amount">${expense.amount.toFixed(2)} RON</span>
+                    <button class="delete-btn" data-index="${index}">Delete</button>
+                `;
+                expensesList.appendChild(expenseItem);
+            });
+            updateTotal();
+        }
+
+        // Function to add an expense
+        function addExpense() {
+            const description = descriptionInput.value.trim();
+            const amount = parseFloat(amountInput.value.trim());
+
+            // Validation
+            if (description === "" || isNaN(amount) || amount <= 0) {
+                errorMessage.textContent = "Please fill out the fields correctly!";
+                return;
+            }
+
+            // Add the expense
+            const expense = { description, amount };
+            expenses.push(expense);
+
+            // Save to localStorage
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+
+            // Update the expenses list and reset fields
+            updateExpensesList();
+            descriptionInput.value = '';
+            amountInput.value = '';
+            errorMessage.textContent = '';
+        }
+
+        // Function to delete an expense
+        function deleteExpense(index) {
+            expenses.splice(index, 1);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            updateExpensesList();
+        }
+
+        // Add events
+        addExpenseBtn.addEventListener('click', addExpense);
+
+        // Event for deleting expenses
+        expensesList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-btn')) {
+                const index = e.target.getAttribute('data-index');
+                deleteExpense(index);
+            }
+        });
+
+        // Initialize the app
+        updateExpensesList();
+
+    </script>
+</body>
+</html>
+
